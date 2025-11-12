@@ -70,6 +70,7 @@ jobs:
         args: >
           -Dsonar.projectKey=NodeJS-Project
           -Dsonar.projectName=NodeJS-Project
+          -X
 
   quality-gate-check:
     runs-on: ubuntu-latest

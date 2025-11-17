@@ -186,10 +186,10 @@ jobs:
     - name: k8s manifest Deployment
       run: |
         # Show what was deployed
-        kubectl apply -f storage.yaml -n prod
-        kubectl apply -f mysql.yaml -n prod
-        kubectl apply -f backend.yaml -n prod
-        kubectl apply -f frontend.yaml -n prod
+        kubectl apply -f k8s-prod/storage.yaml -n prod
+        kubectl apply -f k8s-prod/mysql.yaml -n prod
+        kubectl apply -f k8s-prod/backend.yaml -n prod
+        kubectl apply -f k8s-prod/frontend.yaml -n prod
         
     - name: Verify Deployment
       run: |

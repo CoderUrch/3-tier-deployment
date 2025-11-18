@@ -190,6 +190,9 @@ jobs:
         kubectl apply -f k8s-prod/mysql.yaml -n prod
         kubectl apply -f k8s-prod/backend.yaml -n prod
         kubectl apply -f k8s-prod/frontend.yaml -n prod
+        kubectl apply -f k8s-prod/ci.yaml -n prod
+        kubectl apply -f k8s-prod/nginx-ingress.yaml -n prod
+        sleep 30
         
     - name: Verify Deployment
       run: |
@@ -197,9 +200,10 @@ jobs:
         kubectl get svc -n prod
         kubectl get deployment -n prod
         kubectl wait --for=condition=available deployment/backend -n prod --timeout=120s
+        sleep 20
         
         # Show access App ALB URL
         echo "\nAccess your app at:"
-        kubectl get ingress -n prod -o jsonpath='{.items[0].status.loadBalancer.ingress[0].hostname}' && echo "/" || echo "ALB hostname pending..."
+        kubectl get ingress -n prod 
       
         echo "Kubernetes deployment complete! ✅"

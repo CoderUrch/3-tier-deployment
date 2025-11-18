@@ -16,7 +16,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -29,7 +29,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Setup Node.js
       uses: actions/setup-node@v4
       with:
@@ -43,7 +43,7 @@ jobs:
     needs: [frontend-compilation, backend-compilation]
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     - name: GitLeaks Scan
@@ -57,7 +57,7 @@ jobs:
     needs: gitleaks-scan
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         fetch-depth: 0
     - name: SonarQube Scan
@@ -76,7 +76,7 @@ jobs:
     needs: sonarqube-analysis
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Run Trivy filesystem scan
       uses: aquasecurity/trivy-action@master
       with:
@@ -95,7 +95,7 @@ jobs:
     needs: trivy-fs-scan
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Login to Docker Hub
@@ -115,7 +115,7 @@ jobs:
     needs: trivy-fs-scan
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Set up Docker Buildx
       uses: docker/setup-buildx-action@v3
     - name: Login to Docker Hub
@@ -135,7 +135,7 @@ jobs:
     needs: [build-tag-push-backend, build-tag-push-frontend]
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
     - name: Run Trivy scan on Backend image
       uses: aquasecurity/trivy-action@master
       with:
@@ -163,7 +163,7 @@ jobs:
     
     steps:
     - name: Checkout Code
-      uses: actions/checkout@v4
+      uses: actions/checkout@v5
       with:
         token: ${{ secrets.GITHUB_TOKEN }}
         fetch-depth: 0

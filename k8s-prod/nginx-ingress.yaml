@@ -29,6 +29,5 @@ spec:
                   number: 80
   tls:
     - hosts:
-        - mylearncloud.shop
         - www.mylearncloud.shop
       secretName: mylearncloud-tls-svtnz

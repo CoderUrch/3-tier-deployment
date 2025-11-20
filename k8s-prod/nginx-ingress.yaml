@@ -48,4 +48,4 @@ spec:
     - hosts:
         - mylearncloud.shop
         - www.mylearncloud.shop
-      secretName: mylearncloud-tls
+      secretName: mylearncloud-tls-svtnz

@@ -1,7 +1,7 @@
 
-# 🔧 DevOps Tooling Setup Guide on Linux 
+# 🔧 AWS managed EKS Setup Guide on Linux 
 
-This guide installs and configures the AWS CLI, Terraform, kubectl, eksctl, and sets up EKS with EBS CSI, NGINX Ingress, and cert-manager.
+This guide installs and configures the AWS managed EKS cluster, and sets up EKS with EBS CSI driver, NGINX Ingress, and cert-manager.
 
 
 ## 📦 Install AWS CLI
@@ -14,56 +14,38 @@ sudo ./aws/install
 aws configure
 ```
 
-## 🌍 Install Terraform
-
+## 🌍 Create cluster and node groups
 ```bash
-sudo apt-get update && sudo apt-get install -y gnupg software-properties-common curl
+eksctl create cluster \
+  --name uche \
+  --region eu-north-1 \
+  --nodegroup-name standard-workers \
+  --node-type c7i-flex.large \
+  --nodes 3 \
+  --nodes-min 1 \
+  --nodes-max 3 \
+  --managed \
+  --node-volume-size 20 \
+  --asg-access \
+  --external-dns-access \
+  --full-ecr-access \
+  --appmesh-access \
+  --alb-ingress-access
 
-curl -fsSL https://apt.releases.hashicorp.com/gpg | sudo gpg --dearmor -o /usr/share/keyrings/hashicorp-archive-keyring.gpg
-
-echo "deb [signed-by=/usr/share/keyrings/hashicorp-archive-keyring.gpg] https://apt.releases.hashicorp.com $(lsb_release -cs) main" | \
-  sudo tee /etc/apt/sources.list.d/hashicorp.list
-
-sudo apt-get update && sudo apt-get install terraform -y
-
-terraform -version
 ```
-
 
 ## ☸️ Configure kubeconfig for EKS
 
 ```bash
-aws eks --region ap-south-1 update-kubeconfig --name devopsshack-cluster
+aws eks --region eu-north-1 update-kubeconfig --name uche
 ```
-
-
-## 🧰 Install kubectl
-
-```bash
-curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl"
-curl -LO "https://dl.k8s.io/release/$(curl -sL https://dl.k8s.io/release/stable.txt)/bin/linux/amd64/kubectl.sha256"
-
-sudo install -o root -g root -m 0755 kubectl /usr/local/bin/kubectl
-kubectl version --client
-```
-
-
-## ⚙️ Install eksctl
-
-```bash
-curl -sLO "https://github.com/weaveworks/eksctl/releases/latest/download/eksctl_$(uname -s)_amd64.tar.gz"
-tar -xzf eksctl_$(uname -s)_amd64.tar.gz
-sudo mv eksctl /usr/local/bin
-eksctl version
-```
-
 
 ## 🔐 Associate IAM OIDC Provider with EKS
 
 ```bash
 eksctl utils associate-iam-oidc-provider \
-  --region ap-south-1 \
-  --cluster devopsshack-cluster \
+  --region eu-north-1 \
+  --cluster uche \
   --approve
 ```
 
@@ -74,7 +56,7 @@ eksctl create iamserviceaccount \
   --region ap-south-1 \
   --name ebs-csi-controller-sa \
   --namespace kube-system \
-  --cluster devopsshack-cluster \
+  --cluster uche \
   --attach-policy-arn arn:aws:iam::aws:policy/service-role/AmazonEBSCSIDriverPolicy \
   --approve \
   --override-existing-serviceaccounts
@@ -82,21 +64,85 @@ eksctl create iamserviceaccount \
 
 ## 📦 Deploy Add-ons
 
-### ✅ EBS CSI Driver
+### ✅ Install EBS CSI Driver
 
 ```bash
 kubectl apply -k "github.com/kubernetes-sigs/aws-ebs-csi-driver/deploy/kubernetes/overlays/stable/ecr/?ref=release-1.11"
 ```
 
-### 🌐 NGINX Ingress Controller
+### 🌐 Install NGINX Ingress Controller
 
 ```bash
 kubectl apply -f https://raw.githubusercontent.com/kubernetes/ingress-nginx/main/deploy/static/provider/cloud/deploy.yaml
 ```
 
-### 🔒 cert-manager
+### 🔒 Install cert-manager
 
 ```bash
 kubectl apply -f https://github.com/cert-manager/cert-manager/releases/download/v1.12.0/cert-manager.yaml
 ```
 
+### Helm Set Up
+
+```bash
+Install Helm
+curl -fsSL https://raw.githubusercontent.com/helm/helm/main/scripts/get-helm-3 | bash
+Downloading https://get.helm.sh/helm-v3.18.4-linux-amd64.tar.gz
+```
+
+### Set up Prometheus + Grafana via Helm 
+
+```bash
+helm repo add prometheus-community https://prometheus-community.github.io/helm-charts
+helm repo update
+```
+
+### Deploy prometheus chart in a new namespace “monitoring”
+
+```bash
+helm install monitoring prometheus-community/kube-prometheus-stack --namespace monitoring --create-namespace
+```
+
+### Verify Installation
+
+```bash
+kubectl get all -n monitoring
+```
+
+### Access Prometheus Dashboard
+
+```bash
+kubectl expose service prometheus-operated --type=NodePort --name=prometheus-nodeport -n monitoring --target-port=9090
+```
+
+### Get password to log into Grafana dashboard
+
+```bash
+kubectl get secret --namespace monitoring monitoring-grafana -o jsonpath="{.data.admin-password}" | base64 --decode ; echo
+```
+
+### Access Grafana Dashboard
+
+```bash
+kubectl expose service monitoring-grafana --type=NodePort --target-port=3000 --name=grafana-nodeport -n monitoring
+```
+
+### Add Prometheus as a data source for Grafana
+
+```bash
+http://monitoring-kube-prometheus-prometheus.monitoring.svc.cluster.local:9090
+```
+
+### Import Dashboard in Grafana to visualise Prometheus metrics
+
+```bash
+Go to import dashboard
+In 3662 
+Click load
+```
+
+### Access Alertmanager Dashboard
+
+```bash
+kubectl expose service alertmanager-operated --type=NodePort --target-port=9093 --name=alertmanager-nodeport -n monitoring
+```

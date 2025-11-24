@@ -1,8 +1,8 @@
 # Image tags for GitOps - ArgoCD watches these values
 image:
   frontend:
-    repository: urchytech/frontend
+    repository: urchytech/3-tier-deployment_frontend
     tag: latest
   backend:
-    repository: urchytech/backend  
+    repository: urchytech/3-tier-deployment_backend 
     tag: latest

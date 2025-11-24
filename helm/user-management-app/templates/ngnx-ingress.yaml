@@ -1,37 +1,34 @@
 apiVersion: networking.k8s.io/v1
 kind: Ingress
 metadata:
-  name: grafana-ingress
-  namespace: monitoring
+  name: user-management-ingress
+  namespace: prod
   annotations:
     kubernetes.io/ingress.class: nginx
     cert-manager.io/cluster-issuer: letsencrypt-prod
-    nginx.ingress.kubernetes.io/ssl-redirect: "false"
-    nginx.ingress.kubernetes.io/force-ssl-redirect: "false"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/force-ssl-redirect: "true"
 spec:
   ingressClassName: nginx
   rules:
-    - host: grafana.mylearncloud.shop
+    - host: www.mylearncloud.shop
       http:
         paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: backend-svc
+                port:
+                  number: 5000
           - path: /
             pathType: Prefix
             backend:
               service:
-                name: monitoring-grafana
+                name: frontend-svc
                 port:
                   number: 80
-    - http:  # Wildcard rule for direct ALB access
-        paths:
-          - path: /
-            pathType: Prefix
-            backend:
-              service:
-                name: monitoring-grafana
-                port:
-                  number: 80
-
   tls:
     - hosts:
-        - grafana.mylearncloud.shop
-      secretName: grafana-mylearncloud-tls
+        - www.mylearncloud.shop
+      secretName: mylearncloud-tls

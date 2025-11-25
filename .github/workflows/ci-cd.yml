@@ -190,18 +190,19 @@ jobs:
         echo "Updated values.yaml:"
         cat helm/user-management-app/values.yaml
 
-    - name: Deploy to Production Kubernetes Cluster
+    - name: Commit & Push Updated Helm Chart
       run: |
-        #Deploy to prod namespace
-        helm upgrade --install myapp ./helm/user-management-app \
-          --namespace prod \
-          --set image.backend.tag=${{ github.sha }} \
-          --set image.frontend.tag=${{ github.sha }} \
-          --create-namespace \
-          --wait --timeout=60s
+        git config user.name "github-actions"
+        git config user.email "github-actions@github.com"
+
+        git add helm/user-management-app/values.yaml
+        git commit -m "Update image tags to ${{ github.sha }}"
+        git push origin main
 
         #Deploy to non-prod namespace
         kubectl apply -f k8s-prod/grafana-ingress.yaml -n monitoring
+
+        sleep 30
 
     - name: Verify Deployment
       run: |

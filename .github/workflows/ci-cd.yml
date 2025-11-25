@@ -191,6 +191,8 @@ jobs:
         cat helm/user-management-app/values.yaml
 
     - name: Commit & Push Updated Helm Chart
+      env:
+        GH_PAT: ${{ secrets.GH_PAT }}
       run: |
         git config user.name "github-actions"
         git config user.email "github-actions@github.com"
@@ -198,7 +200,7 @@ jobs:
         git add helm/user-management-app/values.yaml
         git commit -m "Update image tags to ${{ github.sha }}" || echo "No changes to commit"
 
-        git push https://x-access-token:${{ secrets.GH_PAT }}@github.com/CoderUrch/3-tier-deployment.git main
+        git push https://x-access-token:$GH_PAT@github.com/CoderUrch/3-tier-deployment.git main
 
         #Deploy to non-prod namespace
         kubectl apply -f k8s-prod/grafana-ingress.yaml -n monitoring
